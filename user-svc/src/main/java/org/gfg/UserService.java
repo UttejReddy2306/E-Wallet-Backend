@@ -22,7 +22,7 @@ public class UserService {
         User user = createUserRequest.toUser();
         this.userRepository.save(user);
         JSONObject object = this.objectMapper.convertValue(user,JSONObject.class);
-        this.kafkaTemplate.send("user-created", objectMapper.writeValueAsString(user));
+        this.kafkaTemplate.send("user-created", objectMapper.writeValueAsString(object));
 
     }
 }
