@@ -2,6 +2,8 @@ package org.Maven;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -10,10 +12,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.UUID;
 
 @Service
+@Slf4j
 public class TransactionService {
 
     @Autowired
@@ -27,6 +31,9 @@ public class TransactionService {
 
     @Autowired
     JSONParser jsonParser;
+
+    @Autowired
+    RestTemplate restTemplate;
 
     public String initiateTransaction(Integer sender, Integer receiver, Long amount, String reason) throws JsonProcessingException {
 
@@ -62,4 +69,13 @@ public class TransactionService {
     }
 
 
+//    @CircuitBreaker(name = "my", fallbackMethod = "fallStatus")
+    public String getStatus() {
+        LoggerFactory.getLogger(TransactionService.class).info("Inside getStatus method");
+        return restTemplate.getForObject("http://wallet-svc/wallet/get", String.class);
+    }
+    public String fallStatus(Exception e){
+        LoggerFactory.getLogger(TransactionService.class).info("Inside fallback  method");
+        return "Service is Busy. Please try again";
+    }
 }
